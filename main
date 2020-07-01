@@ -1,0 +1,319 @@
+package machine;
+import java.util.Scanner;
+public class CoffeeMachine {
+    private static CoffeeMaker machine = new CoffeeMachine(120, 400, 540, 9, 550);
+    /*
+    public CoffeMachine() {
+        this.machine = new CoffeeMachine(120, 400, 540, 9, 550);
+    }
+    */
+    private enum states {
+        DEFINE_COMMAND, 
+        DRINK_INPUT,
+        DEFINE_DRINK, 
+        MAKING_DRINK, 
+        WATER_INPUT, 
+        BEANS_INPUT, 
+        MILK_INPUT, 
+        CUPS_INPUT, 
+        TAKING_MONEY;
+    }
+    
+    private static states currentState = states.DEFINE_COMMAND;
+    
+    private static boolean parseCommand(String command) {
+        switch (currentState) {
+            case DEFINE_COMMAND:
+                switch (command){
+                    case "remaining":
+                        // printing resources with special function
+                        machine.printMachineParameters();
+                        break;
+                    case "buy":
+                        machine.demandDrink();
+                        currentState = states.DRINK_INPUT;
+                        break;
+                    case "fill":
+                        machine.demandWater();
+                        currentState = states.WATER_INPUT;
+                        break;
+                    case "take":
+                        machine.takeMoney();
+                        break;
+                    case "exit":
+                        return false;
+                    default:
+                        System.out.println("Error! Unidentified command!");
+                        break;
+                }
+            case DRINK_INPUT:
+                machine.demandDrink();
+                currentState = states.DEFINE_DRINK;
+                break;
+            case DEFINE_DRINK:
+                if (machine.defineDrink(command)) {
+                    currentState = states.MAKING_DRINK;
+                } else {
+                    currentState = states.DEFINE_COMMAND;
+                }
+                break;
+            case MAKING_DRINK:
+                machine.makingCoffee();
+                currentState = states.DEFINE_COMMAND;
+                break;
+            case WATER_INPUT:
+                waterNeeded = Integer.parseInt(command);
+                machine.demandBeans();
+                currentState = states.BEANS_INPUT;
+                break;
+            case BEANS_INPUT:
+                beansNeeded = Integer.parseInt(command);
+                machine.demandMilk();
+                currentState = states.MILK_INPUT;
+                break;
+            case MILK_INPUT:
+                milkNeeded = Integer.parseInt(command);
+                machine.demandCups();
+                currentState = states.CUPS_INPUT;
+                break;
+            case CUPS_INPUT:
+                cupsNeeded = Integer.parseInt(command);
+                machine.fillWithResources();
+                currentState = states.DEFINE_COMMAND;
+                break;
+            case TAKING_MONEY:
+                machine.takeMoney();
+                currentState = states.DEFINE_COMMAND;
+                break;
+            default:
+                System.out.println("Error!");
+                break;
+        }
+        return true;
+    }
+    
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        boolean continueCoffeeMachine = true;
+        do {
+            continueCoffeeMachine = parseCommand(scanner.nextLine());
+        } while(continueCoffeeMachine);
+    }
+}
+
+public class CoffeMaker {
+    // initialising constants for coffee cups:
+    // for all of them we need 1 disposable cup:
+    // int coffeeDisposableCup = 1;
+    // for espresso
+    private final static int waterAmountPerEspressoCup = 250;
+    private final static int beansAmountPerEspressoCup = 16;
+    private final static int milkAmountPerEspressoCup = 0;
+    private final static int espressoCupPrice = 4;
+     // for latte
+    private final static int waterAmountPerLatteCup = 350;
+    private final static int beansAmountPerLatteCup = 20;
+    private final static int milkAmountPerLatteCup = 75;
+    private final static int latteCupPrice = 7;
+     // for cappuccino
+    private final static int waterAmountPerCappuccinoCup = 200;
+    private final static int beansAmountPerCappuccinoCup = 12;
+    private final static int milkAmountPerCappuccinoCup = 100;
+    private final static int capuccinoCupPrise = 6;
+    
+    // initialising initial coffee machine parameters
+    /*
+    private int beansAmount;
+    private int waterAmount;
+    private int milkAmount;
+    private int disposableCupsNumber;
+    private int moneyAmount;
+    */
+    private int beansAmount = 120;
+    private int waterAmount = 400;
+    private int milkAmount = 540;
+    private int disposableCupsNumber = 9;
+    private int moneyAmount = 550;
+    // variables defining what coffee to make
+    
+    private int milkNeeded = 0;
+    private int beansNeeded = 0;
+    private int waterNeeded = 0;
+    private int moneyNeeded = 0;
+    private int cupsNeeded = 0;
+    
+    // constructor
+    /*
+    public CoffeeMaker(int water, int milk, int beans, int cups, int money) {
+        this.beansAmount = beans;
+        this.waterAmount = water;
+        this.milkAmount = milk;
+        this.disposableCupsNumber = cups;
+        this.moneyAmount = money;
+    }
+    */
+    private static void demandCommand() {
+        System.out.println("Write action (buy, fill, take): ");
+    }
+    
+    private void printMachineParameters() {
+        System.out.println("The coffee machine has:");
+        System.out.println(waterAmount + " of water");
+        System.out.println(milkAmount + " of milk");
+        System.out.println(beansAmount + " of coffee beans");
+        System.out.println(disposableCupsNumber + " of disposable cups");
+        System.out.println(moneyAmount + " of money");
+    }
+
+    private static void demandDrink() {
+        System.out.println("What do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino, " +
+                            "back - to main menu:");
+    }
+    
+    private boolean defineDrink(String coffeeType) {
+        switch (coffeeType) {
+            case "1":
+                waterNeeded = waterAmountPerEspressoCup;
+                beansNeeded = beansAmountPerEspressoCup;
+                milkNeeded = milkAmountPerEspressoCup;
+                moneyNeeded = espressoCupPrice;
+                return true;
+            case "2":
+                waterNeeded = waterAmountPerLatteCup;
+                beansNeeded = beansAmountPerLatteCup;
+                milkNeeded = milkAmountPerLatteCup;
+                moneyNeeded = latteCupPrice;
+                return true;
+            case "3":
+                waterNeeded = waterAmountPerCappuccinoCup;
+                beansNeeded = beansAmountPerCappuccinoCup;
+                milkNeeded = milkAmountPerCappuccinoCup;
+                moneyNeeded = capuccinoCupPrise;
+                return true;
+            case "back":
+                return false;
+            default:
+                System.out.println("Error! Unidentified drink!");
+                return false;
+        }
+    }
+    
+    private boolean checkElementsNeeded() {
+        String notEnough = "";
+        if (waterNeeded > waterAmount){
+            notEnough = "water";
+        } else if (beansNeeded > beansAmount) {
+            notEnough = "coffee beans";
+        } else if (milkNeeded > milkAmount) {
+            notEnough = "milk";
+        } else if (1 > disposableCupsNumber) {
+            notEnough = "disposable cups";
+        }
+        if (notEnough.isEmpty()) {
+            return true;
+        }
+        System.out.println("Sorry, not enough ".concat(notEnough).concat("!"));
+        return false;
+    }
+    
+    private void makingCoffee() {
+        // checking if remaining resources are enough
+        if (checkElementsNeeded()) {
+            // if enough, making fancy drink
+            System.out.println("I have enough resources, making you a coffee!");
+            // subtracting resources from the machine
+            beansAmount -= beansNeeded;
+            waterAmount -= waterNeeded;
+            milkAmount -= milkNeeded;
+            disposableCupsNumber--;
+            moneyAmount += moneyNeeded;
+        } // if not, special message from function will be written
+    }
+    
+    private static void demandWater() {
+        System.out.println("Write how many ml of water do you want to add:");
+    }
+    
+    private static void demandMilk() {
+        System.out.println("Write how many ml of milk do you want to add:");
+    }
+    
+    private static void demandBeans() {
+        System.out.println("Write how many grams of coffee beans do you want to add:");
+    }
+    
+    private static void demandCups() {
+        System.out.println("Write how many disposable cups of coffee do you want to add:");
+    }
+    
+    private void fillWithResources() {
+        waterAmount += waterNeeded;
+        beansAmount += beansNeeded;
+        milkAmount += milkNeeded;
+        disposableCupsNumber += cupsNeeded;
+    }
+    
+    private void takeMoney() {
+        System.out.println("I gave you $" + moneyAmount);
+        moneyAmount = 0;
+    }
+}
+/*
+public static class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        CoffeeMachine machine = new CoffeeMachine(120, 400, 540, 9, 550);
+        boolean continueCoffeeMacine = true;
+        do {
+            continueCoffeeMacine = machine.parseCommand(scanner.nextLine());
+        } while(continueCoffeeMachine);
+    }
+}
+*/
+/*
+System.out.println("Write how many ml of water the coffee machine has: ");
+int waterAmountTotal = scanner.nextInt();
+int waterForCups = waterAmountTotal / waterAmountPerCup
+System.out.println("Write how many ml of milk the coffee machine has: ");
+int milkAmountTotal = scanner.nextInt();
+int milkForCups = milkAmountTotal / milkAmountPerCup
+System.out.println("Write how many grams of coffee beans the coffee machine has: ");
+int beansAmountTotal = scanner.nextInt();
+int beansForCup = beansAmountTotal / beansAmountPerCup
+int maxNumberOfCups = waterForCups;
+if (milkForCups < maxNumberOfCups) {
+    maxNumberOfCups = milkForCups;
+}
+if (beansForCup < maxNumberOfCups) {
+    maxNumberOfCups = beansForCup;
+}
+System.out.println("Write how many cups of coffee you will need: ");
+int numberOfCups = scanner.nextInt()
+if (maxNumberOfCups >= numberOfCups) {
+    System.out.print("Yes, I can make that amount of coffee");
+    if (maxNumberOfCups > numberOfCups) {
+        System.out.println(" (and even " + (maxNumberOfCups - numberOfCups) + " more than that)");
+    }
+    else {
+        System.out.println();
+    }
+} else {
+    System.out.println("No, I can make only " + maxNumberOfCups + " cup(s) of coffee");
+}
+*
+/*
+System.out.println("For " + numberOfCups + " cups of coffee you will need:");
+System.out.println(numberOfCups * waterAmountPerCup + " ml of water");
+System.out.println(numberOfCups * milkAmountPerCup + " ml of milk");
+System.out.println(numberOfCups * beansAmountPerCup + " g of coffee beans");
+*/
+
+/*
+System.out.println("Starting to make a coffee");
+System.out.println("Grinding coffee beans");
+System.out.println("Boiling water");
+System.out.println("Mixing boiled water with crushed coffee beans");
+System.out.println("Pouring coffee into the cup");
+System.out.println("Pouring some milk into the cup");
+System.out.println("Coffee is ready!");
+*/
